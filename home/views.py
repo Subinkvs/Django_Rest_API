@@ -2,8 +2,24 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from home.models import Person
 from home.serializer import PersonSerializer
-
+from rest_framework.views import APIView
+from rest_framework import viewsets
 # Create your views here.
+
+'''Class based APIView'''
+class PersonView(APIView):
+    def get(self,request):
+       personobj = Person.objects.filter(team__isnull=False)
+       serializer = PersonSerializer(personobj, many=True)
+       return Response(serializer.data)
+   
+    def post(self,request):
+       data = request.data
+       serializer = PersonSerializer(data=data)
+       if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+       return Response(serializer.errors)
 
 '''API function'''
 @api_view(['GET', 'POST', 'PUT'])
@@ -60,3 +76,17 @@ def person(request):
         obj = Person.objects.get(id = data['id'])
         obj.delete()
         return Response({'message':'Person deleted'})
+    
+class PersonViewSets(viewsets.ModelViewSet):
+    serializer_class= PersonSerializer
+    queryset = Person.objects.all()
+    
+    def list(self,request):
+        search = request.GET.get("search")
+        queryset = self.queryset
+        
+        if search:
+            queryset = queryset.filter(name__startswith = search)
+            
+        serializer = PersonSerializer(queryset, many=True)
+        return Response({'status':200, 'data':serializer.data})
