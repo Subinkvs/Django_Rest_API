@@ -1,10 +1,42 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from home.models import Person
-from home.serializer import PersonSerializer
+from home.serializer import PersonSerializer, RegisterSerializer, LoginSerializer
 from rest_framework.views import APIView
 from rest_framework import viewsets
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 # Create your views here.
+
+class RegisterAPI(APIView):
+    def post(self,request):
+        _data = request.data
+        serializer = RegisterSerializer(data =_data)
+        
+        if not serializer.is_valid():
+            return Response({'message':serializer.errors})
+        
+        serializer.save()
+        
+        return Response({'message':'User Created'})
+    
+class LoginAPI(APIView):
+    def post(self,request):
+        _data = request.data
+        serializer = LoginSerializer(data=_data)
+        
+        if not serializer.is_valid():
+            return Response({'message':serializer.errors})
+    
+        user = authenticate(username = serializer.data['username'], password= serializer.data['password'])
+        
+        if not user:
+            return Response({'message':"Invalid"})
+        
+        token, _ = Token.objects.get_or_create(user=user)
+        
+        return Response({'message':'Login successfull', 'token':str(token)})
+        
 
 '''Class based APIView'''
 class PersonView(APIView):

@@ -12,5 +12,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('index/', index, name='index'),
     path('person/', person, name='person'),
-    path('personview/', PersonView.as_view(), name='personview')
+    path('personview/', PersonView.as_view(), name='personview'),
+    path('register/', RegisterAPI.as_view(), name='register'),
+    path('login/', LoginAPI.as_view(), name='login' )
 ]
